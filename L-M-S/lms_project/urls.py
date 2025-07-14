@@ -20,12 +20,8 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
     path('api/v1/', include('lms_app.urls')),
-
-    # Schema generation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    # Swagger UI
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 

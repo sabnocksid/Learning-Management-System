@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
+
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -29,11 +31,18 @@ class Module(models.Model):
     def __str__(self):
         return f"{self.course.title} - {self.title}"
 
+
+
+User = get_user_model()
+
 class StudentProgress(models.Model):
-    student = models.ForeignKey('User', on_delete=models.CASCADE)
-    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    module = models.ForeignKey('Module', on_delete=models.CASCADE)
     completed = models.BooleanField(default=False)
-    last_accessed = models.DateTimeField(auto_now=True)
+    watched_duration = models.FloatField(default=0.0)  
 
     class Meta:
         unique_together = ('student', 'module')
+
+    def __str__(self):
+        return f"{self.student} progress in {self.module}"

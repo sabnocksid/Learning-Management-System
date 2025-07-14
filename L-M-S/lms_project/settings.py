@@ -167,8 +167,8 @@ SIMPLE_JWT = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Your API',
-    'DESCRIPTION': 'Your API description',
+    'TITLE': 'LMS API',
+    'DESCRIPTION': 'LMS API Documentation',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'SECURITY': [{
