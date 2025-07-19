@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Video Player</title>
+</head>
+<body>
+  <h2>Video Player</h2>
+  <video id="videoPlayer" controls width="640" height="360"></video>
+  <div id="errorMessage" style="color: red;"></div>
+
+  <script>
+    const videoUrl = localStorage.getItem("video_url");
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyNDcxMjc2LCJpYXQiOjE3NTI0Njc2NzYsImp0aSI6ImFjNTQ5ZDIyYWE2MjQ3ODM4ODkzNzEzODZlZmZkYjRmIiwidXNlcl9pZCI6Mn0.j3xVDQwh22xGdQqlFJkjqQMYR_gs-zWLZcC2Fk5LutU';
+
+    async function loadVideo() {
+      try {
+        const rangeResponse = await fetch(videoUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!rangeResponse.ok) {
+          throw new Error(`Failed to fetch video metadata: ${rangeResponse.status} ${rangeResponse.statusText}`);
+        }
+
+        const supportsStreaming = rangeResponse.headers.get('Accept-Ranges') === 'bytes';
+        const contentType = rangeResponse.headers.get('Content-Type');
+
+        if (!contentType || !contentType.includes('video/mp4')) {
+          throw new Error(`Unexpected Content-Type: ${contentType}. Expected video/mp4.`);
+        }
+
+        const videoElement = document.getElementById('videoPlayer');
+        const errorElement = document.getElementById('errorMessage');
+
+        if (supportsStreaming) {
+          videoElement.src = videoUrl;
+          videoElement.setAttribute('type', 'video/mp4');
+          videoElement.play().catch(err => {
+            console.warn('Autoplay blocked:', err);
+            errorElement.textContent = 'Autoplay blocked. Click play to start.';
+          });
+        } else {
+          const response = await fetch(videoUrl, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch video: ${response.status} ${response.statusText}`);
+          }
+
+          const blob = await response.blob();
+          const videoBlobUrl = URL.createObjectURL(blob);
+          videoElement.src = videoBlobUrl;
+
+          videoElement.onerror = () => {
+            errorElement.textContent = 'Error playing video. The file may be corrupted.';
+            URL.revokeObjectURL(videoBlobUrl); // Clean up
+          };
+
+          videoElement.play().catch(err => {
+            console.warn('Autoplay blocked:', err);
+            errorElement.textContent = 'Autoplay blocked. Click play to start.';
+          });
+        }
+      } catch (error) {
+        console.error('Error loading video:', error);
+        document.getElementById('errorMessage').textContent = error.message;
+      }
+    }
+
+    loadVideo();
+  </script>
+</body>
+
+
+</html>
